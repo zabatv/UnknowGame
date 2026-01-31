@@ -6,8 +6,8 @@
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #0f0f1a;
-  color: white;
+  background-color: white; /* Белый фон */
+  color: black;
   overflow: hidden;
   height: 100vh;
 }
@@ -22,7 +22,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #0a0a1a;
+  background-color: white; /* Белый фон */
   transition: opacity 0.5s;
   opacity: 0;
   pointer-events: none;
@@ -72,4 +72,5 @@ body {
   top: 0;
   left: 0;
   z-index: -1;
+  background-color: white; /* Фон холста тоже белый */
 }
