@@ -25,15 +25,24 @@ io.on('connection', (socket) => {
       const player1Id = waitingPlayers.pop();
       const player2Id = waitingPlayers.pop();
 
+      // Получаем объекты сокетов для каждого игрока
+      const player1Socket = io.sockets.sockets.get(player1Id);
+      const player2Socket = io.sockets.sockets.get(player2Id);
+
       // Создаём комнату для игры
       const roomId = `room-${Date.now()}`;
-      socket.to(player1Id).join(roomId);
-      socket.to(player2Id).join(roomId);
-      io.sockets.in(roomId).emit('startGame');
+
+      // Игроки присоединяются к комнате
+      player1Socket.join(roomId);
+      player2Socket.join(roomId);
 
       // Уведомляем игроков о начале игры
-      io.to(player1Id).emit('setPlayerData', { id: player1Id, role: 'player1' });
-      io.to(player2Id).emit('setPlayerData', { id: player2Id, role: 'player2' });
+      player1Socket.emit('startGame');
+      player2Socket.emit('startGame');
+
+      // Отправляем каждому его роль
+      player1Socket.emit('setPlayerData', { id: player1Id, role: 'player1' });
+      player2Socket.emit('setPlayerData', { id: player2Id, role: 'player2' });
 
       // Начинаем отслеживание игры
       setupGame(io, roomId, player1Id, player2Id);
@@ -56,11 +65,10 @@ function setupGame(io, roomId, player1Id, player2Id) {
   };
 
   // Отправляем начальное состояние обоим игрокам
-  io.to(player1Id).emit('currentPlayers', players);
-  io.to(player2Id).emit('currentPlayers', players);
+  io.to(roomId).emit('currentPlayers', players);
 
   // Слушаем движения игроков
-  io.sockets.in(roomId).on('playerMove', (data) => {
+  io.to(roomId).on('playerMove', (data) => {
     if (players[data.id]) {
       players[data.id].x = data.x;
       players[data.id].y = data.y;
@@ -69,7 +77,10 @@ function setupGame(io, roomId, player1Id, player2Id) {
   });
 
   // Обработка отключения одного из игроков
-  io.sockets.in(roomId).on('disconnect', (reason) => {
+  io.sockets.sockets.get(player1Id)?.once('disconnect', () => {
+    io.to(roomId).emit('opponentDisconnected');
+  });
+  io.sockets.sockets.get(player2Id)?.once('disconnect', () => {
     io.to(roomId).emit('opponentDisconnected');
   });
 }
