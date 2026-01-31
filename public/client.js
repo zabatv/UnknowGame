@@ -31,7 +31,7 @@ let engine;
 let render;
 let world;
 let myItem;          // Предмет с физикой (только у меня)
-let enemyItemPos = { x: 0, y: 0, angle: 0 }; // Позиция предмета противника (без физики)
+let enemyItem;       // Предмет без физики (противника)
 let mouseConstraint;
 
 // === СТАРТЫЙ ЭКРАН ===
@@ -61,18 +61,21 @@ playBtn.addEventListener('click', () => {
     if (role === 'player1') {
       Matter.Body.setPosition(myItem, { x: data.player1Item.x, y: data.player1Item.y });
       Matter.Body.setAngle(myItem, data.player1Item.angle);
-      enemyItemPos = { ...data.player2Item };
+      Matter.Body.setPosition(enemyItem, { x: data.player2Item.x, y: data.player2Item.y });
+      Matter.Body.setAngle(enemyItem, data.player2Item.angle);
     } else if (role === 'player2') {
       Matter.Body.setPosition(myItem, { x: data.player2Item.x, y: data.player2Item.y });
       Matter.Body.setAngle(myItem, data.player2Item.angle);
-      enemyItemPos = { ...data.player1Item };
+      Matter.Body.setPosition(enemyItem, { x: data.player1Item.x, y: data.player1Item.y });
+      Matter.Body.setAngle(enemyItem, data.player1Item.angle);
     }
   });
 
   // Получаем обновления позиции предмета противника
   socket.on('itemPosition', (data) => {
-    if (data.id !== (role === 'player1' ? 'player1' : 'player2')) {
-      enemyItemPos = { ...data.pos };
+    if (data.id !== role) {
+      Matter.Body.setPosition(enemyItem, { x: data.pos.x, y: data.pos.y });
+      Matter.Body.setAngle(enemyItem, data.pos.angle);
     }
   });
 });
@@ -121,6 +124,15 @@ function initGame(socket) {
         render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
       }
     );
+    // Предмет противника (без физики)
+    enemyItem = Bodies.rectangle(
+      450, 200, 50, 50,
+      {
+        isStatic: true, // Делаем его статичным
+        angle: 0,
+        render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
+      }
+    );
   } else {
     myItem = Bodies.rectangle(
       450, 200, 50, 50,
@@ -134,8 +146,18 @@ function initGame(socket) {
         render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
       }
     );
+    // Предмет противника (без физики)
+    enemyItem = Bodies.rectangle(
+      150, 200, 50, 50,
+      {
+        isStatic: true, // Делаем его статичным
+        angle: 0,
+        render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
+      }
+    );
   }
 
+  // Добавляем только свой предмет в мир
   World.add(world, myItem);
 
   // === Мышь для перетаскивания ===
@@ -247,10 +269,10 @@ function initGame(socket) {
     ctx.drawImage(itemImg, -25, -25, 50, 50);
     ctx.restore();
 
-    // Рисуем предмет противника без физики (только позиция)
+    // Рисуем предмет противника (только позиция)
     ctx.save();
-    ctx.translate(enemyItemPos.x, enemyItemPos.y);
-    ctx.rotate(enemyItemPos.angle);
+    ctx.translate(enemyItem.position.x, enemyItem.position.y);
+    ctx.rotate(enemyItem.angle);
     ctx.drawImage(itemImg, -25, -25, 50, 50);
     ctx.restore();
   }
