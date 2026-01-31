@@ -10,6 +10,9 @@ body {
   color: black;
   overflow: hidden;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .screen {
@@ -26,6 +29,7 @@ body {
   transition: opacity 0.5s;
   opacity: 0;
   pointer-events: none;
+  z-index: 100;
 }
 
 .screen.active {
@@ -38,7 +42,7 @@ body {
 }
 
 .logo {
-  width: 400px; /* увеличено с 300px */
+  width: 400px;
   height: auto;
   max-width: 85vw;
 }
@@ -51,7 +55,7 @@ body {
 }
 
 .play-btn img {
-  width: 220px; /* немного больше */
+  width: 220px;
   height: auto;
   transition: transform 0.3s;
 }
@@ -63,16 +67,67 @@ body {
 .loading-gif {
   width: 250px;
   height: auto;
-  margin-left: 20px; /* сдвинуто вправо */
+  margin-left: 20px;
+}
+
+.game-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.inventory-panel {
+  width: 200px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 20px;
+  background-image: url('border/image.gif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  z-index: 10;
+}
+
+.inventory-panel.left {
+  border-right: 2px solid #ccc;
+}
+
+.inventory-panel.right {
+  border-left: 2px solid #ccc;
+}
+
+.inventory-title {
+  color: #333;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.inventory-items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 90%;
+}
+
+.inventory-item {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(200, 200, 200, 0.3);
+  border: 1px solid #aaa;
+  border-radius: 5px;
 }
 
 #gameCanvas {
+  flex-grow: 1;
+  height: 100%;
   display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
+  position: relative;
+  z-index: 0;
   background-color: white;
-  width: 600px;   /* уменьшено */
-  height: 400px;  /* уменьшено */
 }
