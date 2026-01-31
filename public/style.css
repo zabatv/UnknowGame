@@ -90,24 +90,27 @@ body {
   align-items: center;
   padding-top: 20px;
   background-image: url('border/image.gif');
-  background-size: cover;
+  background-size: cover; /* Покрывает всю панель */
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
   z-index: 10;
-  /* Поворот фона на -90 градусов */
+  /* Поворот фона на -90 градусов, чтобы горизонтальный файл стал вертикальным */
   transform: rotate(-90deg);
-  transform-origin: center;
+  transform-origin: center; /* Центр вращения */
 }
 
+/* Компенсация поворота для содержимого */
 .inventory-panel.left {
   border-right: 2px solid #ccc;
+  /* Поворот панели */
   transform: rotate(-90deg);
   transform-origin: center;
 }
 
 .inventory-panel.right {
   border-left: 2px solid #ccc;
+  /* Поворот панели */
   transform: rotate(-90deg);
   transform-origin: center;
 }
@@ -117,7 +120,8 @@ body {
   font-size: 1.2em;
   margin-bottom: 15px;
   text-align: center;
-  transform: rotate(90deg); /* Компенсация поворота */
+  /* Компенсация поворота панели, чтобы текст был читаемым */
+  transform: rotate(90deg); /* Поворачиваем обратно */
   white-space: nowrap;
 }
 
@@ -126,7 +130,8 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 90%;
-  transform: rotate(90deg); /* Компенсация поворота */
+  /* Компенсация поворота панели */
+  transform: rotate(90deg); /* Поворачиваем обратно */
 }
 
 .inventory-item {
