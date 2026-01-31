@@ -4,6 +4,12 @@ const gameArea = document.getElementById('game-area');
 const gameCanvas = document.getElementById('gameCanvas');
 const ctx = gameCanvas.getContext('2d');
 
+// === Устанавливаем резкие пиксели на canvas ===
+ctx.imageSmoothingEnabled = false;
+ctx.webkitImageSmoothingEnabled = false;
+ctx.mozImageSmoothingEnabled = false;
+ctx.msImageSmoothingEnabled = false;
+
 const playBtn = document.getElementById('play-btn');
 
 let playerId;
@@ -20,7 +26,7 @@ playBtn.addEventListener('click', () => {
 
   socket.on('startGame', () => {
     loadingScreen.classList.remove('active');
-    gameArea.style.display = 'flex'; // Показываем игровую область
+    gameArea.style.display = 'flex';
     gameCanvas.style.display = 'block';
     initGame(socket);
   });
