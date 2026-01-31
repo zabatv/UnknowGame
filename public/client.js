@@ -30,6 +30,7 @@ let engine;
 let render;
 let world;
 let item1Body;
+let roomId = null; // ID комнаты, чтобы отправлять позицию предмета
 
 // === СТАРТЫЙ ЭКРАН ===
 playBtn.addEventListener('click', () => {
@@ -55,6 +56,14 @@ playBtn.addEventListener('click', () => {
   socket.on('opponentDisconnected', () => {
     alert('Противник покинул игру!');
     window.location.reload();
+  });
+
+  // Получаем начальную позицию предмета
+  socket.on('itemPosition', (data) => {
+    if (item1Body) {
+      Matter.Body.setPosition(item1Body, { x: data.x, y: data.y });
+      Matter.Body.setAngle(item1Body, data.angle);
+    }
   });
 });
 
@@ -111,11 +120,25 @@ function initGame(socket) {
       friction: 0.01,
       frictionAir: 0.01,
       restitution: 0.5,
+      angle: 0, // Фиксируем угол
+      angularStiffness: 1, // Отключаем вращение
       render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
     }
   );
 
   World.add(world, item1Body);
+
+  // === Отправка позиции предмета на сервер ===
+  setInterval(() => {
+    if (item1Body) {
+      socket.emit('itemMoved', {
+        x: item1Body.position.x,
+        y: item1Body.position.y,
+        angle: item1Body.angle,
+        roomId: 'room' // TODO: заменить на реальный ID комнаты
+      });
+    }
+  }, 1000 / 30); // 30 раз в секунду
 
   // Запускаем движок и рендер
   Runner.run(engine);
@@ -188,11 +211,13 @@ function initGame(socket) {
     }
 
     // Рисуем предмет с физикой
-    ctx.save();
-    ctx.translate(item1Body.position.x, item1Body.position.y);
-    ctx.rotate(item1Body.angle);
-    ctx.drawImage(itemImg, -25, -25, 50, 50);
-    ctx.restore();
+    if (item1Body) {
+      ctx.save();
+      ctx.translate(item1Body.position.x, item1Body.position.y);
+      ctx.rotate(item1Body.angle);
+      ctx.drawImage(itemImg, -25, -25, 50, 50);
+      ctx.restore();
+    }
   }
 
   setInterval(update, 1000 / 60); // 60 FPS для отрисовки
@@ -201,7 +226,6 @@ function initGame(socket) {
 // === Функция выбора предмета из инвентаря ===
 function selectItem(element) {
   if (element.dataset.itemId === 'item1') {
-    // Предмет уже на поле, можно добавить логику, например, подсветку
     console.log("Выбран предмет: item1");
   }
 }
