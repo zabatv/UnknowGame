@@ -20,7 +20,7 @@ playBtn.addEventListener('click', () => {
 
   socket.on('startGame', () => {
     loadingScreen.classList.remove('active');
-    gameArea.classList.add('active'); // Показываем игровую область
+    gameArea.style.display = 'flex'; // Показываем игровую область
     gameCanvas.style.display = 'block';
     initGame(socket);
   });
