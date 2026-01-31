@@ -10,11 +10,14 @@ app.use(express.static('public'));
 
 // Очередь ожидания
 let waitingPlayers = [];
+let itemPosition = { x: 300, y: 200, angle: 0 }; // Позиция предмета
 
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
-  // Игрок нажал Play
+  // Отправляем начальное состояние предмета новому игроку
+  socket.emit('itemPosition', itemPosition);
+
   socket.on('requestToPlay', () => {
     // Добавляем игрока в очередь
     waitingPlayers.push(socket.id);
@@ -47,6 +50,12 @@ io.on('connection', (socket) => {
       // Начинаем отслеживание игры
       setupGame(io, player1Socket, player2Socket, roomId);
     }
+  });
+
+  // Слушаем изменения позиции предмета
+  socket.on('itemMoved', (data) => {
+    itemPosition = { x: data.x, y: data.y, angle: data.angle };
+    socket.to(data.roomId).emit('itemPosition', itemPosition);
   });
 
   socket.on('disconnect', () => {
