@@ -15,45 +15,35 @@ io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
   socket.on('requestToPlay', () => {
-    // Добавляем игрока в очередь
     waitingPlayers.push(socket.id);
     console.log('Игрок добавлен в очередь. Текущее количество:', waitingPlayers.length);
 
-    // Если игроков двое — начинаем игру
     if (waitingPlayers.length === 2) {
       const player1Id = waitingPlayers.pop();
       const player2Id = waitingPlayers.pop();
 
-      // Получаем объекты сокетов для каждого игрока
       const player1Socket = io.sockets.sockets.get(player1Id);
       const player2Socket = io.sockets.sockets.get(player2Id);
 
-      // Создаём комнату для игры
+      // Создаём комнату
       const roomId = `room-${Date.now()}`;
 
-      // Игроки присоединяются к комнате
       player1Socket.join(roomId);
       player2Socket.join(roomId);
 
-      // Уведомляем игроков о начале игры
-      player1Socket.emit('startGame');
-      player2Socket.emit('startGame');
-
-      // Отправляем каждому его роль
-      player1Socket.emit('setPlayerData', { id: player1Id, role: 'player1' });
-      player2Socket.emit('setPlayerData', { id: player2Id, role: 'player2' });
+      // Уведомляем игроков о роли и начальных предметах
+      player1Socket.emit('startGame', { role: 'player1', roomId });
+      player2Socket.emit('startGame', { role: 'player2', roomId });
 
       // Отправляем начальные позиции предметов
-      player1Socket.emit('initialItems', {
+      const initialItems = {
         player1Item: { x: 150, y: 200, angle: 0 },
         player2Item: { x: 450, y: 200, angle: 0 }
-      });
-      player2Socket.emit('initialItems', {
-        player1Item: { x: 150, y: 200, angle: 0 },
-        player2Item: { x: 450, y: 200, angle: 0 }
-      });
+      };
 
-      // Начинаем отслеживание игры
+      player1Socket.emit('initialItems', initialItems);
+      player2Socket.emit('initialItems', initialItems);
+
       setupGame(io, player1Socket, player2Socket, roomId);
     }
   });
@@ -78,7 +68,7 @@ function setupGame(io, player1Socket, player2Socket, roomId) {
     [player2Socket.id]: { x: 500, y: 200, color: '#2196F3' },
   };
 
-  // Отправляем начальное состояние обоим игрокам
+  // Отправляем начальное состояние
   player1Socket.emit('currentPlayers', players);
   player2Socket.emit('currentPlayers', players);
 
@@ -99,7 +89,6 @@ function setupGame(io, player1Socket, player2Socket, roomId) {
     }
   });
 
-  // Обработка отключения одного из игроков
   player1Socket.once('disconnect', () => {
     io.to(roomId).emit('opponentDisconnected');
   });
