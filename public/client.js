@@ -1,5 +1,6 @@
 const startScreen = document.getElementById('start-screen');
 const loadingScreen = document.getElementById('loading-screen');
+const gameArea = document.getElementById('game-area');
 const gameCanvas = document.getElementById('gameCanvas');
 const ctx = gameCanvas.getContext('2d');
 
@@ -19,6 +20,7 @@ playBtn.addEventListener('click', () => {
 
   socket.on('startGame', () => {
     loadingScreen.classList.remove('active');
+    gameArea.style.display = 'flex'; // Показываем игровую область
     gameCanvas.style.display = 'block';
     initGame(socket);
   });
@@ -43,7 +45,6 @@ function initGame(socket) {
   });
 
   socket.on('playerMoved', (movedPlayer) => {
-    // Обновляем только позицию других игроков, если мы не отправляли последнее движение
     if (movedPlayer.id !== playerId) {
       players[movedPlayer.id] = movedPlayer;
     }
