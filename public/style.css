@@ -71,14 +71,10 @@ body {
 }
 
 .game-container {
-  display: none; /* Будет показано при старте игры */
+  display: flex;
   width: 100%;
   height: 100%;
   position: relative;
-}
-
-.game-container.active {
-  display: flex; /* Появляется при активации */
 }
 
 .inventory-panel {
@@ -90,29 +86,19 @@ body {
   align-items: center;
   padding-top: 20px;
   background-image: url('border/image.gif');
-  background-size: cover; /* Покрывает всю панель */
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
   z-index: 10;
-  /* Поворот фона на -90 градусов, чтобы горизонтальный файл стал вертикальным */
-  transform: rotate(-90deg);
-  transform-origin: center; /* Центр вращения */
 }
 
-/* Компенсация поворота для содержимого */
 .inventory-panel.left {
   border-right: 2px solid #ccc;
-  /* Поворот панели */
-  transform: rotate(-90deg);
-  transform-origin: center;
 }
 
 .inventory-panel.right {
   border-left: 2px solid #ccc;
-  /* Поворот панели */
-  transform: rotate(-90deg);
-  transform-origin: center;
 }
 
 .inventory-title {
@@ -120,9 +106,6 @@ body {
   font-size: 1.2em;
   margin-bottom: 15px;
   text-align: center;
-  /* Компенсация поворота панели, чтобы текст был читаемым */
-  transform: rotate(90deg); /* Поворачиваем обратно */
-  white-space: nowrap;
 }
 
 .inventory-items {
@@ -130,8 +113,6 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 90%;
-  /* Компенсация поворота панели */
-  transform: rotate(90deg); /* Поворачиваем обратно */
 }
 
 .inventory-item {
