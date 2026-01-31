@@ -1,10 +1,19 @@
+// --- Matter.js ---
+const Engine = Matter.Engine,
+      Render = Matter.Render,
+      Runner = Matter.Runner,
+      Bodies = Matter.Bodies,
+      World = Matter.World,
+      Mouse = Matter.Mouse,
+      MouseConstraint = Matter.MouseConstraint;
+
 const startScreen = document.getElementById('start-screen');
 const loadingScreen = document.getElementById('loading-screen');
 const gameArea = document.getElementById('game-area');
 const gameCanvas = document.getElementById('gameCanvas');
 const ctx = gameCanvas.getContext('2d');
 
-// === Устанавливаем резкие пиксели на canvas ===
+// === Отключаем сглаживание для canvas ===
 ctx.imageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
 ctx.mozImageSmoothingEnabled = false;
@@ -15,6 +24,12 @@ const playBtn = document.getElementById('play-btn');
 let playerId;
 let players = {};
 let role = null;
+
+// === Matter.js ===
+let engine;
+let render;
+let world;
+let item1Body;
 
 // === СТАРТЫЙ ЭКРАН ===
 playBtn.addEventListener('click', () => {
@@ -45,6 +60,68 @@ playBtn.addEventListener('click', () => {
 
 // === ИГРОВАЯ ЛОГИКА ===
 function initGame(socket) {
+  // === Инициализация физики ===
+  engine = Engine.create();
+  world = engine.world;
+
+  // Создаём рендер (не используем его напрямую, а рисуем сами)
+  render = Render.create({
+    canvas: gameCanvas,
+    engine: engine,
+    options: {
+      width: gameCanvas.width,
+      height: gameCanvas.height,
+      wireframes: false,
+      background: 'white'
+    }
+  });
+
+  // Добавляем границы
+  const ground = Bodies.rectangle(gameCanvas.width / 2, gameCanvas.height + 10, gameCanvas.width, 20, { isStatic: true });
+  const leftWall = Bodies.rectangle(-10, gameCanvas.height / 2, 20, gameCanvas.height, { isStatic: true });
+  const rightWall = Bodies.rectangle(gameCanvas.width + 10, gameCanvas.height / 2, 20, gameCanvas.height, { isStatic: true });
+  const ceiling = Bodies.rectangle(gameCanvas.width / 2, -10, gameCanvas.width, 20, { isStatic: true });
+
+  World.add(world, [ground, leftWall, rightWall, ceiling]);
+
+  // === Мышь для перетаскивания ===
+  const mouse = Mouse.create(gameCanvas);
+  const mouseConstraint = MouseConstraint.create(engine, {
+    mouse: mouse,
+    constraint: {
+      stiffness: 0.2,
+      render: { visible: false }
+    }
+  });
+
+  World.add(world, mouseConstraint);
+
+  // === Загрузка изображения предмета ===
+  const itemImg = new Image();
+  itemImg.src = 'items/item1.png';
+
+  // === Создание тела предмета ===
+  item1Body = Bodies.rectangle(
+    gameCanvas.width / 2,
+    gameCanvas.height / 2,
+    50,
+    50,
+    {
+      density: 0.04,
+      friction: 0.01,
+      frictionAir: 0.01,
+      restitution: 0.5,
+      render: { sprite: { texture: itemImg.src, xScale: 0.1, yScale: 0.1 } }
+    }
+  );
+
+  World.add(world, item1Body);
+
+  // Запускаем движок и рендер
+  Runner.run(engine);
+  Render.run(render);
+
+  // === Socket.io ===
   socket.on('currentPlayers', (currentPlayers) => {
     players = currentPlayers;
     draw();
@@ -102,12 +179,29 @@ function initGame(socket) {
 
   function draw() {
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+    // Рисуем игроков
     for (const id in players) {
       const player = players[id];
       ctx.fillStyle = player.color;
       ctx.fillRect(player.x, player.y, 20, 20);
     }
+
+    // Рисуем предмет с физикой
+    ctx.save();
+    ctx.translate(item1Body.position.x, item1Body.position.y);
+    ctx.rotate(item1Body.angle);
+    ctx.drawImage(itemImg, -25, -25, 50, 50);
+    ctx.restore();
   }
 
   setInterval(update, 1000 / 60); // 60 FPS для отрисовки
+}
+
+// === Функция выбора предмета из инвентаря ===
+function selectItem(element) {
+  if (element.dataset.itemId === 'item1') {
+    // Предмет уже на поле, можно добавить логику, например, подсветку
+    console.log("Выбран предмет: item1");
+  }
 }
