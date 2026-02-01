@@ -87,24 +87,24 @@ body {
 
 .inventory-panel {
     width: 200px;
-    height: 50%; /* ПОКАЗАТЬ ТОЛЬКО ПОЛОВИНУ */
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     padding-top: 20px;
+    /* === НОВОЕ === */
     background-image: url('border/image.gif');
-    background-size: 213.5px 812px; /* 61 * 3.5 на 232 * 3.5 */
+    background-size: 183px 696px; /* 61x3 на 232x3 */
     background-repeat: no-repeat;
-    background-position: center top; /* Прижимаем к верху */
+    background-position: center top;
+    /* =========== */
     position: relative;
     z-index: 10;
-    /* Отключаем сглаживание для фона */
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    overflow: hidden; /* ОБРЕЗАТЬ ВНЕШНИЕ ЧАСТИ */
 }
 
 /* Убираем заголовок инвентаря */
