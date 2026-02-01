@@ -15,7 +15,8 @@ let playerId;
 let players = {};
 let lines = [];
 let drawnPoints = [];
-let projectiles = []; // === Анимированные иконки и жидкость ===
+let projectiles = []; // === Анимированные иконки ===
+let liquidDrops = []; // === Капли жидкости ===
 let role = null;
 let roomId = null;
 
@@ -94,7 +95,20 @@ function launchProjectile(from, to) {
         stepY,
         remainingSteps: framesForFlight,
         done: false,
-        trail: [] // === ИСТОРИЯ ПОЗИЦИЙ ДЛЯ ЖИДКОСТИ ===
+        dropTimer: 0 // === Таймер для генерации капель ===
+    });
+}
+
+// === ФУНКЦИЯ СОЗДАНИЯ КАПЛИ ===
+function createDrop(x, y) {
+    liquidDrops.push({
+        x: x,
+        y: y,
+        vy: 0, // начальная скорость по Y
+        gravity: 0.3, // ускорение свободного падения
+        radius: Math.random() * 2 + 1, // случайный размер капли (1-3px)
+        life: 1.0, // начальная "жизнь" (для alpha)
+        decayRate: 0.01 // скорость уменьшения жизни
     });
 }
 
@@ -142,26 +156,40 @@ function initGame(socket) {
             lastSentTime = now;
         }
 
-        // === ОБНОВЛЕНИЕ ПОЗИЦИИ СНАРЯДОВ И ИХ СЛЕДА ===
+        // === ОБНОВЛЕНИЕ ПОЗИЦИИ СНАРЯДОВ ===
         projectiles.forEach(proj => {
             if (proj.done) return;
 
             if (proj.remainingSteps <= 0) {
                 proj.done = true;
             } else {
-                // === СОХРАНЯЕМ ТЕКУЩУЮ ПОЗИЦИЮ В СЛЕД ===
-                proj.trail.push({ x: proj.x, y: proj.y });
-
-                // === ОГРАНИЧИВАЕМ ДЛИНУ СЛЕДА ===
-                if (proj.trail.length > 10) {
-                    proj.trail.shift(); // удаляем самую старую точку
-                }
-
                 proj.x += proj.stepX;
                 proj.y += proj.stepY;
                 proj.remainingSteps--;
+
+                // === ГЕНЕРАЦИЯ КАПЕЛЬ ===
+                proj.dropTimer++;
+                if (proj.dropTimer >= 5) { // например, каждые 5 кадров
+                    // Добавляем немного случайности к позиции капли относительно иконки
+                    const offsetX = (Math.random() - 0.5) * 20; // от -10 до +10
+                    const offsetY = (Math.random() - 0.5) * 20; // от -10 до +10
+                    createDrop(proj.x + offsetX, proj.y + offsetY);
+                    proj.dropTimer = 0;
+                }
             }
         });
+
+        // === ОБНОВЛЕНИЕ КАПЕЛЬ ===
+        for (let i = liquidDrops.length - 1; i >= 0; i--) {
+            const drop = liquidDrops[i];
+            drop.vy += drop.gravity; // увеличиваем скорость падения
+            drop.y += drop.vy;
+            drop.life -= drop.decayRate; // уменьшаем жизнь
+
+            if (drop.life <= 0) {
+                liquidDrops.splice(i, 1); // удаляем каплю, если "умерла"
+            }
+        }
 
         draw();
     }
@@ -217,25 +245,20 @@ function draw() {
         ctx.fill();
     });
 
-    // Рисуем снаряды (иконки) и их след (жидкость)
-    projectiles.forEach(proj => {
-        // === РИСУЕМ СЛЕД (ЖИДКОСТЬ) ===
-        if (proj.trail.length > 1) {
-            for (let i = 0; i < proj.trail.length; i++) {
-                const point = proj.trail[i];
-                // Прозрачность зависит от "возраста" точки (чем дальше, тем прозрачнее)
-                const alpha = i / proj.trail.length;
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = '#0000FF'; // === ЦВЕТ ЖИДКОСТИ ===
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 3, 0, Math.PI * 2); // === РАЗМЕР "КАПЛИ" ===
-                ctx.fill();
-            }
-            // Сбрасываем alpha для других элементов
-            ctx.globalAlpha = 1.0;
-        }
+    // Рисуем капли (жидкость)
+    liquidDrops.forEach(drop => {
+        ctx.globalAlpha = drop.life; // прозрачность зависит от "жизни"
+        ctx.fillStyle = '#0000FF'; // цвет капли
+        ctx.beginPath();
+        // Рисуем овал, имитирующий каплю (ширина чуть больше высоты)
+        ctx.ellipse(drop.x, drop.y, drop.radius, drop.radius * 1.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    // Сбрасываем alpha
+    ctx.globalAlpha = 1.0;
 
-        // === РИСУЕМ ИКОНКУ ===
+    // Рисуем снаряды (иконки)
+    projectiles.forEach(proj => {
         if (!proj.done && itemIcon.complete) {
             ctx.save();
             ctx.translate(proj.x, proj.y);
