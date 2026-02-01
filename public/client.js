@@ -2,7 +2,7 @@ const startScreen = document.getElementById('start-screen');
 const loadingScreen = document.getElementById('loading-screen');
 const gameArea = document.getElementById('game-area');
 const gameCanvas = document.getElementById('gameCanvas');
-const trailsCanvas = document.createElement('canvas'); // === ДИНАМИЧЕСКИ СОЗДАЁМ trailsCanvas ===
+const trailsCanvas = document.createElement('canvas');
 const gameCtx = gameCanvas.getContext('2d');
 const trailsCtx = trailsCanvas.getContext('2d');
 
@@ -20,10 +20,11 @@ trailsCtx.msImageSmoothingEnabled = false;
 const playBtn = document.getElementById('play-btn');
 let playerId;
 let players = {};
-let lines = []; // === ХРАНИМ ЛИНИИ ===
-let drawnPoints = []; // === ХРАНИМ ТОЧКИ ===
-let projectiles = []; // === ХРАНИМ ИКОНКИ ===
-let liquidDrops = []; // === ХРАНИМ КАПЛИ ===
+let lines = [];
+let drawnPoints = [];
+let projectiles = [];
+let liquidDrops = [];
+let persistentTrails = []; // === НОВЫЙ МАССИВ ДЛЯ ПОСТОЯННЫХ СЛЕДОВ ===
 let role = null;
 let roomId = null;
 
@@ -45,7 +46,7 @@ playBtn.addEventListener('click', () => {
     socket.on('gameStart', (data) => {
         role = data.role;
         roomId = data.roomId;
-        playerId = socket.id; // === УСТАНАВЛИВАЕМ ID ИГРОКА ===
+        playerId = socket.id;
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
         gameCanvas.style.display = 'block';
@@ -58,10 +59,9 @@ playBtn.addEventListener('click', () => {
         trailsCanvas.style.top = '0';
         trailsCanvas.style.left = '0';
         trailsCanvas.style.zIndex = '0'; // Под gameCanvas
-        trailsCanvas.style.pointerEvents = 'none'; // Не мешает кликам
-        trailsCanvas.style.backgroundColor = 'transparent'; // Прозрачный фон
+        trailsCanvas.style.pointerEvents = 'none';
+        trailsCanvas.style.backgroundColor = 'transparent';
 
-        // === ВСТАВЛЯЕМ trailsCanvas ПЕРЕД gameCanvas ===
         gameCanvas.parentNode.insertBefore(trailsCanvas, gameCanvas);
 
         initGame(socket);
@@ -145,7 +145,6 @@ function initGame(socket) {
     gameCanvas.width = gameCanvas.clientWidth;
     gameCanvas.height = gameCanvas.clientHeight;
 
-    // === ОБНОВЛЯЕМ РАЗМЕР trailsCanvas ПРИ ИЗМЕНЕНИИ ===
     function handleResize() {
         gameCanvas.width = gameCanvas.clientWidth;
         gameCanvas.height = gameCanvas.clientHeight;
@@ -243,13 +242,15 @@ function initGame(socket) {
             drop.life -= drop.decayRate;
 
             if (drop.life <= 0) {
-                // === УБИРАЕМ ФИНАЛЬНЫЙ ОВАЛ ===
-                // trailsCtx.fillStyle = '#0000FF';
-                // trailsCtx.beginPath();
-                // trailsCtx.ellipse(drop.x, drop.y, drop.radius, drop.radius * 1.5, 0, 0, Math.PI * 2);
-                // trailsCtx.fill();
+                // === КОГДА КАПЛЯ УМИРАЕТ, ДОБАВЛЯЕМ ЕЁ КАК ПОСТОЯННЫЙ СЛЕД ===
+                persistentTrails.push({
+                    x: drop.x,
+                    y: drop.y,
+                    radius: drop.radius,
+                    color: '#0000FF' // цвет постоянного следа
+                });
 
-                liquidDrops.splice(i, 1); // удаляем каплю, если "умерла"
+                liquidDrops.splice(i, 1); // удаляем каплю
             }
         }
 
@@ -308,18 +309,6 @@ function draw() {
         gameCtx.fill();
     });
 
-    // === ОТРИСОВКА СЛЕДА КАПЕЛЬ НА trailsCanvas ===
-    // КАПЛИ ОСТАВЛЯЮТ СЛЕД КАЖДЫЙ КАДР, ПОКА ЖИВЫ
-    liquidDrops.forEach(drop => {
-        // === РИСУЕМ СЛЕД НА trailsCanvas ===
-        // Прозрачность следа зависит от "жизни" капли
-        trailsCtx.globalAlpha = drop.life * 0.3; // можно регулировать интенсивность
-        trailsCtx.fillStyle = '#0000FF'; // цвет следа
-        trailsCtx.beginPath();
-        trailsCtx.ellipse(drop.x, drop.y, drop.radius, drop.radius * 1.5, 0, 0, Math.PI * 2);
-        trailsCtx.fill();
-    });
-
     // Рисуем снаряды (иконки)
     projectiles.forEach(proj => {
         if (!proj.done && itemIcon.complete) {
@@ -341,9 +330,16 @@ function draw() {
         }
     });
 
+    // === ОТРИСОВКА ПОСТОЯННЫХ СЛЕДОВ ===
+    persistentTrails.forEach(trail => {
+        trailsCtx.fillStyle = trail.color;
+        trailsCtx.beginPath();
+        trailsCtx.ellipse(trail.x, trail.y, trail.radius, trail.radius * 1.5, 0, 0, Math.PI * 2);
+        trailsCtx.fill();
+    });
+
     // === ОТРИСОВКА ТЕКУЩИХ КАПЕЛЬ НА gameCanvas ===
     liquidDrops.forEach(drop => {
-        // === РИСУЕМ САМУ КАПЛЮ НА gameCanvas ===
         gameCtx.globalAlpha = drop.life;
         gameCtx.fillStyle = '#0000FF'; // цвет капли
         gameCtx.beginPath();
@@ -353,7 +349,6 @@ function draw() {
 
     // === СБРОС АЛЬФЫ ===
     gameCtx.globalAlpha = 1.0;
-    trailsCtx.globalAlpha = 1.0; // восстанавливаем alpha для следующего кадра
 }
 
 // === ФУНКЦИЯ ВЫБОРА ПРЕДМЕТА (адаптирована под data-item-id) ===
