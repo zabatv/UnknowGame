@@ -1,58 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Multiplayer Game</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>Эксперимент</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Стартовый экран -->
-  <div id="start-screen" class="screen active">
-    <div class="logo-container">
-      <img src="logo/image.gif" alt="Logo" class="logo" />
-    </div>
-    <button id="play-btn" class="play-btn">
-      <img src="play_button/image.gif" alt="Play" />
-    </button>
-  </div>
-
-  <!-- Экран загрузки (без текста) -->
-  <div id="loading-screen" class="screen">
-    <img src="loading/image.gif" alt="Loading..." class="loading-gif" />
-  </div>
-
-  <!-- Игровой экран -->
-  <div id="game-area" class="game-container" style="display: none;">
-    <div class="inventory-panel left">
-      <div class="inventory-title">Your Inventory</div>
-      <div class="inventory-items">
-        <div class="inventory-item" data-item-id="item1" onclick="selectItem(this)">📦</div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-      </div>
+    <!-- Стартовый экран -->
+    <div id="start-screen" class="screen active">
+        <div class="logo-container">
+            <h1>Эксперимент</h1>
+        </div>
+        <button id="play-btn" class="play-btn">
+            <span>Начать</span>
+        </button>
     </div>
 
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
-
-    <div class="inventory-panel right">
-      <div class="inventory-title">Enemy Inventory</div>
-      <div class="inventory-items">
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-        <div class="inventory-item"></div>
-      </div>
+    <!-- Экран загрузки -->
+    <div id="loading-screen" class="screen">
+        <h2>Подключение...</h2>
+        <img src="loading/image.gif" alt="Загрузка" class="loading-gif">
     </div>
-  </div>
 
-  <!-- Подключение Matter.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <!-- Подключение Socket.IO и клиентского скрипта -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+    <!-- Игровая зона -->
+    <div id="game-area" class="game-container">
+        <div class="inventory-panel left">
+            <h3>Ты</h3>
+            <div id="my-cuts">Порезы: <span id="my-count">0</span></div>
+        </div>
+        <div class="center-area">
+            <h2 id="status">Ожидание выбора...</h2>
+            <div class="choice-buttons">
+                <button id="cut-self">2 пореза себе</button>
+                <button id="cut-other">1 порез другому</button>
+            </div>
+        </div>
+        <div class="inventory-panel right">
+            <h3>Другой</h3>
+            <div id="other-cuts">Порезы: <span id="other-count">0</span></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>
