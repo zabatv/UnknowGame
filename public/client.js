@@ -15,7 +15,7 @@ let playerId;
 let players = {};
 let lines = [];
 let drawnPoints = [];
-let projectiles = [];
+let projectiles = []; // === Анимированные иконки ===
 let role = null;
 let roomId = null;
 
@@ -37,7 +37,7 @@ playBtn.addEventListener('click', () => {
     socket.on('gameStart', (data) => {
         role = data.role;
         roomId = data.roomId;
-        playerId = socket.id;
+        playerId = socket.id; // === ВАЖНО: устанавливаем ID игрока ===
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
         gameCanvas.style.display = 'block';
@@ -73,15 +73,27 @@ playBtn.addEventListener('click', () => {
     });
 });
 
-// === ФУНКЦИЯ ЗАПУСКА АНИМИРОВАННОГО СНАРЯДА ===
+// === ФУНКЦИЯ ЗАПУСКА АНИМИРОВАННОГО СНАРЯДА (с учётом длины линии) ===
 function launchProjectile(from, to) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // === Рассчитываем время полёта: чем длиннее линия, тем больше времени (и больше кадров) ===
+    const flightDurationMs = distance * 10; // например, 10ms на пиксель
+    const framesForFlight = flightDurationMs / (1000 / 60); // ~60 FPS
+    const stepX = dx / framesForFlight;
+    const stepY = dy / framesForFlight;
+
     projectiles.push({
         x: from.x,
         y: from.y,
         targetX: to.x,
         targetY: to.y,
-        angle: Math.atan2(to.y - from.y, to.x - from.x), // === УГОЛ НАПРАВЛЕНИЯ ===
-        speed: 0.05, // === МЕНЬШЕ СКОРОСТЬ ===
+        angle: Math.atan2(dy, dx), // === УГОЛ НАПРАВЛЕНИЯ ===
+        stepX, // === ШАГ ПО X ===
+        stepY, // === ШАГ ПО Y ===
+        remainingSteps: framesForFlight, // === ОСТАВШИЕСЯ КАДРЫ ===
         done: false
     });
 }
@@ -134,15 +146,12 @@ function initGame(socket) {
         projectiles.forEach(proj => {
             if (proj.done) return;
 
-            const dx = proj.targetX - proj.x;
-            const dy = proj.targetY - proj.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < 5) {
+            if (proj.remainingSteps <= 0) {
                 proj.done = true;
             } else {
-                proj.x += dx * proj.speed;
-                proj.y += dy * proj.speed;
+                proj.x += proj.stepX;
+                proj.y += proj.stepY;
+                proj.remainingSteps--;
             }
         });
 
@@ -208,8 +217,10 @@ function draw() {
             ctx.translate(proj.x, proj.y); // перемещаем начало координат в позицию снаряда
             ctx.rotate(proj.angle);       // поворачиваем на угол направления
 
-            // === ФИКСИРОВАННЫЙ РАЗМЕР ИКОНКИ ===
-            const iconSize = 30; // размер в пикселях
+            // === ФИКСИРОВАННЫЙ РАЗМЕР ИКОНКИ (без сплющивания) ===
+            const iconSize = 30;
+            // Убедимся, что CSS не влияет на рендеринг
+            ctx.imageSmoothingEnabled = false;
             ctx.drawImage(
                 itemIcon,
                 -iconSize / 2, // центрируем иконку по оси X
@@ -231,7 +242,8 @@ function selectItem(element) {
     if (itemId === 'item1') {
         console.log("Выбран предмет: item1 — режим выбора двух точек");
         tempSelectedPoints = [];
-        alert("Кликните два раза на поле, чтобы провести линию.");
+        // === УБРАНО УВЕДОМЛЕНИЕ ===
+        // alert("Кликните два раза на поле, чтобы провести линию.");
     } else {
         console.log("Выбран другой предмет:", itemId);
         selectedItem = null;
