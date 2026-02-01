@@ -86,17 +86,19 @@ body {
 }
 
 .inventory-panel {
-    width: 200px;
+    width: 200px; /* Это ширина панели */
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     padding-top: 20px;
+    /* === НОВОЕ === */
     background-image: url('border/image.gif');
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-size: auto; /* Не растягиваем, сохраняем пропорции */
+    background-repeat: repeat-y; /* Повторяем по вертикали */
+    background-position: center top; /* Прижимаем к верху */
+    /* =========== */
     position: relative;
     z-index: 10;
     image-rendering: -moz-crisp-edges;
