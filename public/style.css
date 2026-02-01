@@ -97,7 +97,7 @@ body {
     background-image: url('border/image.gif');
     background-size: 183px 696px; /* 61x3 на 232x3 */
     background-repeat: no-repeat;
-    background-position: center top;
+    background-position: center center;
     /* =========== */
     position: relative;
     z-index: 10;
