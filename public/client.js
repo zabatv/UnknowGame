@@ -1,60 +1,119 @@
 const startScreen = document.getElementById('start-screen');
 const loadingScreen = document.getElementById('loading-screen');
 const gameArea = document.getElementById('game-area');
-const statusText = document.getElementById('status');
-const myCountEl = document.getElementById('my-count');
-const otherCountEl = document.getElementById('other-count');
-const cutSelfBtn = document.getElementById('cut-self');
-const cutOtherBtn = document.getElementById('cut-other');
+const gameCanvas = document.getElementById('gameCanvas');
+const ctx = gameCanvas.getContext('2d');
+
+// === Отключаем сглаживание для canvas ===
+ctx.imageSmoothingEnabled = false;
+ctx.webkitImageSmoothingEnabled = false;
+ctx.mozImageSmoothingEnabled = false;
+ctx.msImageSmoothingEnabled = false;
 
 const playBtn = document.getElementById('play-btn');
-let socket;
+let playerId;
+let players = {};
 let role = null;
-let gameState = {};
+let roomId = null;
 
+// === СТАРТЫЙ ЭКРАН ===
 playBtn.addEventListener('click', () => {
     startScreen.classList.remove('active');
     loadingScreen.classList.add('active');
 
-    socket = io();
+    const socket = io();
     socket.emit('requestToPlay');
 
     socket.on('gameStart', (data) => {
         role = data.role;
-        gameState = data.state;
+        roomId = data.roomId;
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
-
-        updateUI();
-    });
-
-    socket.on('updateState', (state) => {
-        gameState = state;
-        updateUI();
+        gameCanvas.style.display = 'block';
+        initGame(socket);
     });
 
     socket.on('opponentDisconnected', () => {
         alert('Противник покинул игру!');
         window.location.reload();
     });
+
+    socket.on('currentPlayers', (currentPlayers) => {
+        players = currentPlayers;
+        draw();
+    });
+
+    socket.on('playerMoved', (movedPlayer) => {
+        if (movedPlayer.id !== playerId) {
+            players[movedPlayer.id] = movedPlayer;
+        }
+        draw();
+    });
 });
 
-function updateUI() {
-    if (role === 'player1') {
-        myCountEl.textContent = gameState.player1.cuts;
-        otherCountEl.textContent = gameState.player2.cuts;
-    } else if (role === 'player2') {
-        myCountEl.textContent = gameState.player2.cuts;
-        otherCountEl.textContent = gameState.player1.cuts;
+// === ИГРОВАЯ ЛОГИКА ===
+function initGame(socket) {
+    gameCanvas.width = gameCanvas.clientWidth;
+    gameCanvas.height = gameCanvas.clientHeight;
+
+    // Клавиши
+    const keys = {};
+    window.addEventListener('keydown', (e) => keys[e.key] = true);
+    window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+    let lastSentTime = 0;
+    const sendInterval = 1000 / 30; // 30 раз в секунду
+
+    function update() {
+        if (!players[playerId]) return;
+        const speed = 5;
+        const p = players[playerId];
+
+        let moved = false;
+
+        if (keys['ArrowUp'] && p.y > 0) {
+            p.y -= speed;
+            moved = true;
+        }
+        if (keys['ArrowDown'] && p.y < gameCanvas.height - 20) {
+            p.y += speed;
+            moved = true;
+        }
+        if (keys['ArrowLeft'] && p.x > 0) {
+            p.x -= speed;
+            moved = true;
+        }
+        if (keys['ArrowRight'] && p.x < gameCanvas.width - 20) {
+            p.x += speed;
+            moved = true;
+        }
+
+        // Отправляем позицию на сервер с интервалом
+        const now = Date.now();
+        if (moved && now - lastSentTime >= sendInterval) {
+            socket.emit('playerMove', { x: p.x, y: p.y, id: playerId });
+            lastSentTime = now;
+        }
+
+        draw();
     }
+
+    function draw() {
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+        // Рисуем игроков
+        for (const id in players) {
+            const player = players[id];
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, 20, 20);
+        }
+    }
+
+    setInterval(update, 1000 / 60); // 60 FPS для отрисовки
 }
 
-cutSelfBtn.addEventListener('click', () => {
-    socket.emit('cutDecision', { choice: 'self', roomId: gameState.roomId });
-    statusText.textContent = 'Вы выбрали самопожертвование.';
-});
-
-cutOtherBtn.addEventListener('click', () => {
-    socket.emit('cutDecision', { choice: 'other', roomId: gameState.roomId });
-    statusText.textContent = 'Вы выбрали причинить боль другому.';
-});
+// === Функция выбора предмета из инвентаря ===
+function selectItem(element) {
+    if (element.dataset.itemId === 'item1') {
+        console.log("Выбран предмет: item1");
+    }
+}
