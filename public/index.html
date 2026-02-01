@@ -6,25 +6,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Стартовый экран -->
+    <div id="start-screen" class="screen active">
+        <div class="logo-container">
+            <img src="logo/image.gif" alt="Logo" class="logo">
+        </div>
+        <button id="play-btn" class="play-btn">
+            <img src="play_button/image.gif" alt="Play Button">
+        </button>
+    </div>
+
+    <!-- Экран загрузки -->
+    <div id="loading-screen" class="screen">
+        <!-- УБРАНО: <h2>Поиск противника...</h2> -->
+        <img src="loading/image.gif" alt="Loading..." class="loading-gif">
+    </div>
+
     <!-- Игровая зона -->
     <div id="game-area" class="game-container">
         <div class="inventory-panel left">
-            <!-- Убрана надпись Your Inventory -->
+            <!-- УБРАНО: <div class="inventory-title">Your Inventory📦</div> -->
             <div class="inventory-items">
                 <div class="inventory-item" onclick="selectItem(this)" data-item-id="item1">
-                    <img src="items/item1.png" alt="Item 1" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item" onclick="selectItem(this)" data-item-id="item2">
-                    <img src="items/item2.png" alt="Item 2" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item" onclick="selectItem(this)" data-item-id="item3">
-                    <img src="items/item3.png" alt="Item 3" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item" onclick="selectItem(this)" data-item-id="item4">
-                    <img src="items/item4.png" alt="Item 4" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item" onclick="selectItem(this)" data-item-id="item5">
-                    <img src="items/item5.png" alt="Item 5" style="width: 100%; height: 100%;">
+                    <img src="items/item1.png" alt="Item 1">
                 </div>
             </div>
         </div>
@@ -32,22 +36,10 @@
         <canvas id="gameCanvas"></canvas>
 
         <div class="inventory-panel right">
-            <!-- Убрана надпись Enemy Inventory -->
+            <!-- УБРАНО: <div class="inventory-title">Enemy Inventory</div> -->
             <div class="inventory-items">
                 <div class="inventory-item">
-                    <img src="items/item1.png" alt="Item 1" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item">
-                    <img src="items/item2.png" alt="Item 2" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item">
-                    <img src="items/item3.png" alt="Item 3" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item">
-                    <img src="items/item4.png" alt="Item 4" style="width: 100%; height: 100%;">
-                </div>
-                <div class="inventory-item">
-                    <img src="items/item5.png" alt="Item 5" style="width: 100%; height: 100%;">
+                    <img src="items/item1.png" alt="Item 1">
                 </div>
             </div>
         </div>
