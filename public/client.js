@@ -14,14 +14,14 @@ const playBtn = document.getElementById('play-btn');
 let playerId;
 let players = {};
 let lines = [];
-let drawnPoints = []; // === Точки, отображаемые сразу при клике ===
-let tempSelectedPoints = []; // === Временные точки до отправки ===
-let projectiles = []; // === Анимированные иконки ===
+let drawnPoints = [];
+let projectiles = [];
 let role = null;
 let roomId = null;
 
 // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ РАБОТЫ С ЛИНИЕЙ ===
 let selectedItem = null;
+let tempSelectedPoints = [];
 
 // === Загрузка изображения иконки ===
 const itemIcon = new Image();
@@ -68,7 +68,6 @@ playBtn.addEventListener('click', () => {
             to: lineData.to,
             timestamp: Date.now()
         });
-        // === ДОБАВЛЯЕМ ТОЧКИ ОТ СЕРВЕРА ===
         drawnPoints.push(lineData.from, lineData.to);
         launchProjectile(lineData.from, lineData.to);
     });
@@ -81,7 +80,8 @@ function launchProjectile(from, to) {
         y: from.y,
         targetX: to.x,
         targetY: to.y,
-        speed: 0.1,
+        angle: Math.atan2(to.y - from.y, to.x - from.x), // === УГОЛ НАПРАВЛЕНИЯ ===
+        speed: 0.05, // === МЕНЬШЕ СКОРОСТЬ ===
         done: false
     });
 }
@@ -158,13 +158,13 @@ function initGame(socket) {
         const y = e.clientY - rect.top;
 
         tempSelectedPoints.push({ x, y });
-        drawnPoints.push({ x, y }); // === ДОБАВЛЯЕМ ТОЧКУ СРАЗУ ===
+        drawnPoints.push({ x, y });
 
         if (tempSelectedPoints.length === 2) {
             const lineData = { from: tempSelectedPoints[0], to: tempSelectedPoints[1], playerId };
             socket.emit('drawLine', lineData);
             console.log("Отправлено событие drawLine:", lineData);
-            tempSelectedPoints = []; // сброс временных точек
+            tempSelectedPoints = [];
         }
     });
 
@@ -185,28 +185,40 @@ function draw() {
     // Рисуем линии
     lines.forEach((line) => {
         ctx.beginPath();
-        ctx.strokeStyle = '#000000'; // === ЧЁРНАЯ ЛИНИЯ ===
+        ctx.strokeStyle = '#000000';
         ctx.lineWidth = 3;
         ctx.moveTo(line.from.x, line.from.y);
         ctx.lineTo(line.to.x, line.to.y);
         ctx.stroke();
     });
 
-    // Рисуем точки (включая временные)
+    // Рисуем точки
     drawnPoints.forEach(point => {
         ctx.beginPath();
-        ctx.fillStyle = '#000000'; // чёрный цвет
-        ctx.arc(point.x, point.y, 5, 0, Math.PI * 2); // радиус 5
+        ctx.fillStyle = '#000000';
+        ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
         ctx.fill();
     });
 
     // Рисуем снаряды (иконки)
     projectiles.forEach(proj => {
         if (!proj.done && itemIcon.complete) {
-            // === Рисуем иконку с оригинальным разрешением ===
-            const width = itemIcon.width;
-            const height = itemIcon.height;
-            ctx.drawImage(itemIcon, proj.x - width / 2, proj.y - height, width, height);
+            // === ПОВОРОТ ИКОНКИ ===
+            ctx.save();
+            ctx.translate(proj.x, proj.y); // перемещаем начало координат в позицию снаряда
+            ctx.rotate(proj.angle);       // поворачиваем на угол направления
+
+            // === ФИКСИРОВАННЫЙ РАЗМЕР ИКОНКИ ===
+            const iconSize = 30; // размер в пикселях
+            ctx.drawImage(
+                itemIcon,
+                -iconSize / 2, // центрируем иконку по оси X
+                -iconSize,     // сдвигаем вверх, чтобы низ иконки был на линии
+                iconSize,
+                iconSize
+            );
+
+            ctx.restore(); // восстанавливаем систему координат
         }
     });
 }
@@ -218,7 +230,7 @@ function selectItem(element) {
 
     if (itemId === 'item1') {
         console.log("Выбран предмет: item1 — режим выбора двух точек");
-        tempSelectedPoints = []; // сброс при выборе
+        tempSelectedPoints = [];
         alert("Кликните два раза на поле, чтобы провести линию.");
     } else {
         console.log("Выбран другой предмет:", itemId);
