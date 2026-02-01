@@ -95,9 +95,9 @@ body {
     padding-top: 20px;
     /* === НОВОЕ === */
     background-image: url('border/image.gif');
-    background-size: contain;     /* Изображение масштабируется, чтобы полностью поместиться в панель */
-    background-repeat: no-repeat;  /* Не повторять */
-    background-position: center;   /* Центрировать */
+    background-size: 183px 696px; /* 61x3 на 232x3 */
+    background-repeat: no-repeat;
+    background-position: center top;
     /* =========== */
     position: relative;
     z-index: 10;
