@@ -243,6 +243,13 @@ function initGame(socket) {
             drop.life -= drop.decayRate;
 
             if (drop.life <= 0) {
+                // === РИСУЕМ ОКОНЧАТЕЛЬНЫЙ СЛЕД ПОСЛЕ СМЕРТИ КАПЛИ ===
+                trailsCtx.globalAlpha = 1.0; // Полностью непрозрачный след
+                trailsCtx.fillStyle = '#0000FF'; // Цвет следа
+                trailsCtx.beginPath();
+                trailsCtx.ellipse(drop.x, drop.y, drop.radius, drop.radius * 1.5, 0, 0, Math.PI * 2);
+                trailsCtx.fill();
+
                 liquidDrops.splice(i, 1); // удаляем каплю, если "умерла"
             }
         }
@@ -323,18 +330,8 @@ function draw() {
         }
     });
 
-    // === ОТРИСОВКА КАПЕЛЬ И ИХ СЛЕДОВ ===
-    // Сначала очищаем trailsCanvas
-    trailsCtx.clearRect(0, 0, trailsCanvas.width, trailsCanvas.height);
-
+    // === ОТРИСОВКА ТЕКУЩИХ КАПЕЛЬ (без очистки trailsCanvas) ===
     liquidDrops.forEach(drop => {
-        // === РИСУЕМ СЛЕД НА trailsCanvas ===
-        trailsCtx.globalAlpha = drop.life * 0.3; // делаем след менее прозрачным, чем сама капля
-        trailsCtx.fillStyle = '#0000FF'; // цвет следа
-        trailsCtx.beginPath();
-        trailsCtx.ellipse(drop.x, drop.y, drop.radius, drop.radius * 1.5, 0, 0, Math.PI * 2);
-        trailsCtx.fill();
-
         // === РИСУЕМ САМУ КАПЛЮ НА gameCanvas ===
         gameCtx.globalAlpha = drop.life;
         gameCtx.fillStyle = '#0000FF'; // цвет капли
@@ -345,7 +342,7 @@ function draw() {
 
     // === СБРОС АЛЬФЫ ===
     gameCtx.globalAlpha = 1.0;
-    trailsCtx.globalAlpha = 1.0;
+    // trailsCtx.globalAlpha НЕ СБРАСЫВАЕМ, потому что следы уже нарисованы и непрозрачны
 }
 
 // === ФУНКЦИЯ ВЫБОРА ПРЕДМЕТА (адаптирована под data-item-id) ===
