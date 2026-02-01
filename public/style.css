@@ -84,19 +84,22 @@ body {
     height: 100%;
     position: relative;
 }
-
 .inventory-panel {
-    /* Размеры под вашу рамку */
-    width: 183px;           /* ширина изображения border/image.gif */
-    height: 696px;          /* высота изображения */
+    /* Обязательные свойства */
+    width: 183px;           /* ширина вашей рамки */
+    height: 696px;          /* высота вашей рамки */
     position: relative;
     background-image: url(border/image.gif);
-    background-size: 100% auto;   /* растягиваем по ширине, высота пропорционально */
+    background-size: 100% auto;
     background-repeat: no-repeat;
     background-position: center center;
-    /* НЕ используем flex для всего контейнера — лучше абсолютное позиционирование для предметов */
-}
+    /* Важно: предотвратить схлопывание */
+    min-width: 183px;
+    box-sizing: border-box;
 
+    /* Если используется как flex-элемент — добавьте это: */
+    flex: 0 0 auto;         /* не растягиваться, не сжиматься */
+}
 /* Контейнер для предметов — размещаем ВНУТРИ рамки */
 .inventory-items {
     position: absolute;
