@@ -101,14 +101,20 @@ function launchProjectile(from, to) {
 
 // === ФУНКЦИЯ СОЗДАНИЯ КАПЛИ ===
 function createDrop(x, y) {
+    // === НАЧАЛЬНАЯ СКОРОСТЬ КАПЛИ ===
+    const initialSpeed = 1.0 + Math.random() * 2.0; // от 1.0 до 3.0
+    const angleVariance = (Math.random() - 0.5) * 0.5; // небольшой разброс направления
+    const dirAngle = Math.PI / 2 + angleVariance; // начинаем "падать" вниз (+/- угол)
+
     liquidDrops.push({
         x: x,
         y: y,
-        vy: 0, // начальная скорость по Y
-        gravity: 0.3, // ускорение свободного падения
+        vx: Math.cos(dirAngle) * initialSpeed, // начальная скорость по X
+        vy: Math.sin(dirAngle) * initialSpeed, // начальная скорость по Y
+        friction: 0.95, // коэффициент трения/замедления (меньше 1.0)
         radius: Math.random() * 2 + 1, // случайный размер капли (1-3px)
         life: 1.0, // начальная "жизнь" (для alpha)
-        decayRate: 0.01 // скорость уменьшения жизни
+        decayRate: 0.005 // скорость уменьшения жизни (медленнее)
     });
 }
 
@@ -171,9 +177,16 @@ function initGame(socket) {
                 proj.dropTimer++;
                 if (proj.dropTimer >= 5) { // например, каждые 5 кадров
                     // Добавляем немного случайности к позиции капли относительно иконки
+                    // Используем угол и размер иконки, чтобы "отрывать" каплю снизу
                     const offsetX = (Math.random() - 0.5) * 20; // от -10 до +10
-                    const offsetY = (Math.random() - 0.5) * 20; // от -10 до +10
-                    createDrop(proj.x + offsetX, proj.y + offsetY);
+                    const offsetY = (Math.random() - 0.5) * 10 + 15; // от +10 до +20 (ниже центра иконки)
+                    // Применяем смещение в системе координат иконки (с учетом угла)
+                    const cos = Math.cos(proj.angle);
+                    const sin = Math.sin(proj.angle);
+                    const rotatedOffsetX = offsetX * cos - offsetY * sin;
+                    const rotatedOffsetY = offsetX * sin + offsetY * cos;
+
+                    createDrop(proj.x + rotatedOffsetX, proj.y + rotatedOffsetY);
                     proj.dropTimer = 0;
                 }
             }
@@ -182,9 +195,24 @@ function initGame(socket) {
         // === ОБНОВЛЕНИЕ КАПЕЛЬ ===
         for (let i = liquidDrops.length - 1; i >= 0; i--) {
             const drop = liquidDrops[i];
-            drop.vy += drop.gravity; // увеличиваем скорость падения
+
+            // === ЗАМЕДЛЕНИЕ КАПЛИ ===
+            drop.vx *= drop.friction;
+            drop.vy *= drop.friction;
+
+            // === ДВИЖЕНИЕ КАПЛИ ===
+            drop.x += drop.vx;
             drop.y += drop.vy;
-            drop.life -= drop.decayRate; // уменьшаем жизнь
+
+            // === ПРОВЕРКА, НЕ ОСТАНОВИЛАСЬ ЛИ КАПЛЯ ===
+            const speedSquared = drop.vx * drop.vx + drop.vy * drop.vy;
+            if (speedSquared < 0.01) { // если скорость очень мала
+                drop.vx = 0;
+                drop.vy = 0;
+            }
+
+            // === УМЕНЬШЕНИЕ ЖИЗНИ ===
+            drop.life -= drop.decayRate;
 
             if (drop.life <= 0) {
                 liquidDrops.splice(i, 1); // удаляем каплю, если "умерла"
