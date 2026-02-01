@@ -106,14 +106,9 @@ body {
     image-rendering: crisp-edges;
 }
 
-.inventory-title {
-    color: #333;
-    font-size: 1.2em;
-    margin-bottom: 15px;
-    text-align: center;
-}
+/* УБРАНО: .inventory-title */
 
-/* Инвентарь теперь вертикальный: 1 колонка, 5 рядов */
+/* Инвентарь: 1 колонка, 5 рядов */
 .inventory-items {
     display: grid;
     grid-template-columns: 1fr; /* 1 колонка */
@@ -123,11 +118,22 @@ body {
 }
 
 .inventory-item {
-    width: 50px;
-    height: 50px;
+    width: 50px; /* ВЕРНУЛИ: прежний размер */
+    height: 50px; /* ВЕРНУЛИ: прежний размер */
     background-color: rgba(200, 200, 200, 0.3);
     border: 1px solid #aaa;
     border-radius: 5px;
+}
+
+/* Убедимся, что изображения внутри инвентаря тоже не сглаживаются */
+.inventory-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Чтобы изображение не растягивалось */
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 #gameCanvas {
