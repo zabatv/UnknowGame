@@ -15,7 +15,7 @@ let playerId;
 let players = {};
 let lines = [];
 let drawnPoints = [];
-let projectiles = []; // === Анимированные иконки ===
+let projectiles = []; // === Анимированные иконки и жидкость ===
 let role = null;
 let roomId = null;
 
@@ -37,7 +37,7 @@ playBtn.addEventListener('click', () => {
     socket.on('gameStart', (data) => {
         role = data.role;
         roomId = data.roomId;
-        playerId = socket.id; // === ВАЖНО: устанавливаем ID игрока ===
+        playerId = socket.id;
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
         gameCanvas.style.display = 'block';
@@ -73,13 +73,12 @@ playBtn.addEventListener('click', () => {
     });
 });
 
-// === ФУНКЦИЯ ЗАПУСКА АНИМИРОВАННОГО СНАРЯДА (с учётом длины линии) ===
+// === ФУНКЦИЯ ЗАПУСКА АНИМИРОВАННОГО СНАРЯДА (с жидкостью) ===
 function launchProjectile(from, to) {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // === Рассчитываем время полёта: чем длиннее линия, тем больше времени (и больше кадров) ===
     const flightDurationMs = distance * 10; // например, 10ms на пиксель
     const framesForFlight = flightDurationMs / (1000 / 60); // ~60 FPS
     const stepX = dx / framesForFlight;
@@ -90,11 +89,12 @@ function launchProjectile(from, to) {
         y: from.y,
         targetX: to.x,
         targetY: to.y,
-        angle: Math.atan2(dy, dx), // === УГОЛ НАПРАВЛЕНИЯ ===
-        stepX, // === ШАГ ПО X ===
-        stepY, // === ШАГ ПО Y ===
-        remainingSteps: framesForFlight, // === ОСТАВШИЕСЯ КАДРЫ ===
-        done: false
+        angle: Math.atan2(dy, dx),
+        stepX,
+        stepY,
+        remainingSteps: framesForFlight,
+        done: false,
+        trail: [] // === ИСТОРИЯ ПОЗИЦИЙ ДЛЯ ЖИДКОСТИ ===
     });
 }
 
@@ -142,13 +142,21 @@ function initGame(socket) {
             lastSentTime = now;
         }
 
-        // === ОБНОВЛЕНИЕ ПОЗИЦИИ СНАРЯДОВ ===
+        // === ОБНОВЛЕНИЕ ПОЗИЦИИ СНАРЯДОВ И ИХ СЛЕДА ===
         projectiles.forEach(proj => {
             if (proj.done) return;
 
             if (proj.remainingSteps <= 0) {
                 proj.done = true;
             } else {
+                // === СОХРАНЯЕМ ТЕКУЩУЮ ПОЗИЦИЮ В СЛЕД ===
+                proj.trail.push({ x: proj.x, y: proj.y });
+
+                // === ОГРАНИЧИВАЕМ ДЛИНУ СЛЕДА ===
+                if (proj.trail.length > 10) {
+                    proj.trail.shift(); // удаляем самую старую точку
+                }
+
                 proj.x += proj.stepX;
                 proj.y += proj.stepY;
                 proj.remainingSteps--;
@@ -209,27 +217,41 @@ function draw() {
         ctx.fill();
     });
 
-    // Рисуем снаряды (иконки)
+    // Рисуем снаряды (иконки) и их след (жидкость)
     projectiles.forEach(proj => {
-        if (!proj.done && itemIcon.complete) {
-            // === ПОВОРОТ ИКОНКИ ===
-            ctx.save();
-            ctx.translate(proj.x, proj.y); // перемещаем начало координат в позицию снаряда
-            ctx.rotate(proj.angle);       // поворачиваем на угол направления
+        // === РИСУЕМ СЛЕД (ЖИДКОСТЬ) ===
+        if (proj.trail.length > 1) {
+            for (let i = 0; i < proj.trail.length; i++) {
+                const point = proj.trail[i];
+                // Прозрачность зависит от "возраста" точки (чем дальше, тем прозрачнее)
+                const alpha = i / proj.trail.length;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#0000FF'; // === ЦВЕТ ЖИДКОСТИ ===
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3, 0, Math.PI * 2); // === РАЗМЕР "КАПЛИ" ===
+                ctx.fill();
+            }
+            // Сбрасываем alpha для других элементов
+            ctx.globalAlpha = 1.0;
+        }
 
-            // === ФИКСИРОВАННЫЙ РАЗМЕР ИКОНКИ (без сплющивания) ===
+        // === РИСУЕМ ИКОНКУ ===
+        if (!proj.done && itemIcon.complete) {
+            ctx.save();
+            ctx.translate(proj.x, proj.y);
+            ctx.rotate(proj.angle);
+
             const iconSize = 30;
-            // Убедимся, что CSS не влияет на рендеринг
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(
                 itemIcon,
-                -iconSize / 2, // центрируем иконку по оси X
-                -iconSize,     // сдвигаем вверх, чтобы низ иконки был на линии
+                -iconSize / 2,
+                -iconSize,
                 iconSize,
                 iconSize
             );
 
-            ctx.restore(); // восстанавливаем систему координат
+            ctx.restore();
         }
     });
 }
@@ -242,8 +264,6 @@ function selectItem(element) {
     if (itemId === 'item1') {
         console.log("Выбран предмет: item1 — режим выбора двух точек");
         tempSelectedPoints = [];
-        // === УБРАНО УВЕДОМЛЕНИЕ ===
-        // alert("Кликните два раза на поле, чтобы провести линию.");
     } else {
         console.log("Выбран другой предмет:", itemId);
         selectedItem = null;
