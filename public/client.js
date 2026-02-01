@@ -13,7 +13,7 @@ ctx.msImageSmoothingEnabled = false;
 const playBtn = document.getElementById('play-btn');
 let playerId;
 let players = {};
-let lines = []; // === НОВОЕ: массив для линий ===
+let lines = []; // === НОВОЕ: массив для хранения линий ===
 let role = null;
 let roomId = null;
 
@@ -27,7 +27,7 @@ playBtn.addEventListener('click', () => {
     socket.on('gameStart', (data) => {
         role = data.role;
         roomId = data.roomId;
-        playerId = socket.id; // === УБЕДИМСЯ, ЧТО playerId УСТАНОВЛЕН ===
+        playerId = socket.id; // === ВАЖНО: устанавливаем ID игрока ===
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
         gameCanvas.style.display = 'block';
@@ -41,14 +41,14 @@ playBtn.addEventListener('click', () => {
 
     socket.on('currentPlayers', (currentPlayers) => {
         players = currentPlayers;
-        draw(); // === ИСПРАВЛЕНО: draw теперь доступна ===
+        draw();
     });
 
     socket.on('playerMoved', (movedPlayer) => {
         if (movedPlayer.id !== playerId) {
             players[movedPlayer.id] = movedPlayer;
         }
-        draw(); // === ИСПРАВЛЕНО: draw теперь доступна ===
+        draw();
     });
 
     // === НОВОЕ: получение линии от сервера ===
@@ -105,6 +105,8 @@ function initGame(socket) {
             socket.emit('playerMove', { x: p.x, y: p.y, id: playerId });
             lastSentTime = now;
         }
+
+        draw();
     }
 
     // === НОВОЕ: обработка клика на canvas ===
@@ -120,7 +122,7 @@ function initGame(socket) {
         if (selectedPoints.length === 2) {
             const lineData = { from: selectedPoints[0], to: selectedPoints[1], playerId };
             socket.emit('drawLine', lineData); // === ОТПРАВКА НА СЕРВЕР ===
-            selectedPoints = [];
+            selectedPoints = []; // сброс точек
         }
     });
 
