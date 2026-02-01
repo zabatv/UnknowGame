@@ -99,14 +99,14 @@ body {
     background-repeat: no-repeat;
     position: relative;
     z-index: 10;
-    /* Отключаем сглаживание для фона */
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
 
-/* УБРАНО: .inventory-title */
+/* Убираем заголовок инвентаря */
+/* .inventory-title { ... } — удален */
 
 /* Инвентарь: 1 колонка, 5 рядов */
 .inventory-items {
@@ -115,21 +115,27 @@ body {
     grid-template-rows: repeat(5, 1fr); /* 5 рядов */
     gap: 10px;
     width: 90%;
+    /* Высота контейнера: чтобы уместить 5 ячеек + промежутки */
+    height: calc((61px * 5) + (10px * 4)); /* 5 предметов + 4 промежутка */
 }
 
 .inventory-item {
-    width: 50px; /* ВЕРНУЛИ: прежний размер */
-    height: 50px; /* ВЕРНУЛИ: прежний размер */
+    width: 61px; /* Указываем ширину */
+    height: 61px; /* Указываем высоту */
     background-color: rgba(200, 200, 200, 0.3);
     border: 1px solid #aaa;
     border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* На всякий случай */
 }
 
-/* Убедимся, что изображения внутри инвентаря тоже не сглаживаются */
+/* Изображение внутри ячейки */
 .inventory-item img {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Чтобы изображение не растягивалось */
+    object-fit: contain; /* Сохраняем пропорции и вмещаем в ячейку */
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
@@ -143,7 +149,6 @@ body {
     position: relative;
     z-index: 0;
     background-color: white;
-    /* Для canvas — уже установлено */
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
