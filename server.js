@@ -75,19 +75,14 @@ function setupGame(io, player1Socket, player2Socket, roomId) {
         }
     });
 
-    // --- НОВОЕ: Обработка события рисования линии ---
+    // === НОВОЕ: обработка события рисования линии ===
     player1Socket.on('drawLine', (lineData) => {
-        // Валидация данных (по желанию, можно добавить проверки)
-        // Пример: if (typeof lineData.from.x !== 'number') return;
         io.to(roomId).emit('newLine', lineData);
     });
 
     player2Socket.on('drawLine', (lineData) => {
-        // Валидация данных (по желанию, можно добавить проверки)
-        // Пример: if (typeof lineData.from.x !== 'number') return;
         io.to(roomId).emit('newLine', lineData);
     });
-    // --- КОНЕЦ НОВОГО ---
 
     player1Socket.once('disconnect', () => {
         io.to(roomId).emit('opponentDisconnected');
