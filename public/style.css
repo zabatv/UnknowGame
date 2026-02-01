@@ -1,156 +1,109 @@
 /* Глобальное правило для всех изображений */
 img {
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: white;
-  color: black;
-  overflow: hidden;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: white;
+    color: black;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: white;
-  transition: opacity 0.5s;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    transition: opacity 0.5s;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
 }
 
 .screen.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.logo-container {
-  margin-bottom: 40px;
-}
-
-.logo {
-  width: 400px;
-  height: auto;
-  max-width: 85vw;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .play-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  outline: none;
-}
-
-.play-btn img {
-  width: 220px;
-  height: auto;
-  transition: transform 0.3s;
-}
-
-.play-btn:hover img {
-  transform: scale(1.05);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    font-size: 1.5em;
+    margin-top: 20px;
 }
 
 .loading-gif {
-  width: 250px;
-  height: auto;
-  margin-left: 20px;
+    width: 250px;
+    height: auto;
+    margin-left: 20px;
 }
 
 .game-container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
 .inventory-panel {
-  width: 200px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 20px;
-  background-image: url('border/image.gif');
-  background-size: 100% 100%; /* Растягиваем фон */
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  z-index: 10;
-
-  /* Отключаем сглаживание для фона */
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+    width: 200px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 20px;
+    background-image: url('border/image.gif');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    z-index: 10;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
-/* Убрали серую линию */
-.inventory-panel.left {
-  /* border-right: 2px solid #ccc; — удалено */
+.center-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
 }
 
-.inventory-panel.right {
-  /* border-left: 2px solid #ccc; — удалено */
+.choice-buttons button {
+    font-size: 1.2em;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
 }
 
-.inventory-title {
-  color: #333;
-  font-size: 1.2em;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-/* Инвентарь теперь вертикальный: 1 колонка, 5 рядов */
-.inventory-items {
-  display: grid;
-  grid-template-columns: 1fr; /* 1 колонка */
-  grid-template-rows: repeat(5, 1fr); /* 5 рядов */
-  gap: 10px;
-  width: 90%;
-}
-
-.inventory-item {
-  width: 50px;
-  height: 50px;
-  background-color: rgba(200, 200, 200, 0.3);
-  border: 1px solid #aaa;
-  border-radius: 5px;
-}
-
-#gameCanvas {
-  flex-grow: 1;
-  height: 100%;
-  display: none;
-  position: relative;
-  z-index: 0;
-  background-color: white;
-
-  /* Для canvas — уже установлено */
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+#status {
+    font-size: 1.5em;
+    text-align: center;
 }
