@@ -17,6 +17,10 @@ let lines = []; // === НОВОЕ: массив для хранения лини
 let role = null;
 let roomId = null;
 
+// === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ РАБОТЫ С ЛИНИЕЙ ===
+let selectedItem = null;
+let selectedPoints = [];
+
 // === СТАРТЫЙ ЭКРАН ===
 playBtn.addEventListener('click', () => {
     startScreen.classList.remove('active');
@@ -27,7 +31,7 @@ playBtn.addEventListener('click', () => {
     socket.on('gameStart', (data) => {
         role = data.role;
         roomId = data.roomId;
-        playerId = socket.id; // === ВАЖНО: устанавливаем ID игрока ===
+        playerId = socket.id;
         loadingScreen.classList.remove('active');
         gameArea.style.display = 'flex';
         gameCanvas.style.display = 'block';
@@ -71,10 +75,6 @@ function initGame(socket) {
     let lastSentTime = 0;
     const sendInterval = 1000 / 30; // 30 раз в секунду
 
-    // === НОВОЕ: переменные для работы с линией ===
-    let selectedItem = null;
-    let selectedPoints = [];
-
     function update() {
         if (!players[playerId]) return;
         const speed = 5;
@@ -109,7 +109,7 @@ function initGame(socket) {
         draw();
     }
 
-    // === НОВОЕ: обработка клика на canvas ===
+    // === НОВОЕ: обработка клика на canvas (теперь имеет доступ к selectedItem) ===
     gameCanvas.addEventListener('click', (e) => {
         if (selectedItem !== 'item1') return;
 
@@ -121,7 +121,7 @@ function initGame(socket) {
 
         if (selectedPoints.length === 2) {
             const lineData = { from: selectedPoints[0], to: selectedPoints[1], playerId };
-            socket.emit('drawLine', lineData); // === ОТПРАВКА НА СЕРВЕР ===
+            socket.emit('drawLine', lineData);
             selectedPoints = []; // сброс точек
         }
     });
